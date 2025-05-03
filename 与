@@ -1,0 +1,97 @@
+import pygame
+import random
+
+# 初始化 pygame
+pygame.init()
+
+# 设置游戏窗口
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("简单赛车游戏")
+
+# 颜色定义
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+
+# 玩家赛车类
+class Car(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((50, 100))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.center = (screen_width // 2, screen_height - 120)
+        self.speed = 5
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and self.rect.left > 0:
+            self.rect.x -= self.speed
+        if keys[pygame.K_RIGHT] and self.rect.right < screen_width:
+            self.rect.x += self.speed
+
+# 敌人类
+class EnemyCar(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((50, 100))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randint(0, screen_width - 50)
+        self.rect.y = random.randint(-150, -100)
+        self.speed = random.randint(5, 10)
+
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.top > screen_height:
+            self.rect.y = random.randint(-150, -100)
+            self.rect.x = random.randint(0, screen_width - 50)
+
+# 创建精灵组
+all_sprites = pygame.sprite.Group()
+enemy_cars = pygame.sprite.Group()
+
+# 创建玩家赛车对象
+player_car = Car()
+all_sprites.add(player_car)
+
+# 创建敌人赛车对象
+for i in range(5):  # 生成5辆敌人车
+    enemy_car = EnemyCar()
+    all_sprites.add(enemy_car)
+    enemy_cars.add(enemy_car)
+
+# 游戏主循环
+running = True
+clock = pygame.time.Clock()
+
+while running:
+    screen.fill(WHITE)
+
+    # 处理事件
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # 更新精灵
+    all_sprites.update()
+
+    # 检测碰撞
+    if pygame.sprite.spritecollide(player_car, enemy_cars, False):
+        print("游戏结束!")
+        running = False
+
+    # 绘制所有精灵
+    all_sprites.draw(screen)
+
+    # 刷新屏幕
+    pygame.display.flip()
+
+    # 设置帧率
+    clock.tick(60)
+
+# 退出游戏
+pygame.quit()
